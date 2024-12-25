@@ -1,52 +1,51 @@
 package steps;
 
 import io.cucumber.java.After;
+import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.Assert;
-import tests.BaseTest;
+import pages.SearchPage;
 
 import java.time.Duration;
-import java.util.List;
 
-import static java.lang.Thread.sleep;
 
-public class SearchStep extends BaseTest {
+public class SearchStep {
 
-    WebDriver driver;
+    public SearchPage searchPage;
+    private WebDriver driver;
 
-    @Given("booking search page is opened")
-    public void bookingSearchPageIsOpened() {
+    @Before
+    public void setup() {
         driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        searchPage = new SearchPage();
+    }
 
+    @Given("booking search page is opened")
+    public void bookingSearchPageIsOpened() {
+        searchPage.open();
     }
 
     @When("user searches for {string}")
     public void userSearchesFor(String hotel) throws InterruptedException {
-        sleep(2000);
-        driver.findElement(By.xpath("//input[@name ='ss']")).sendKeys(hotel);
-        sleep(2000);
-        driver.findElement(By.cssSelector("button[type=submit]")).click();
+        searchPage.search("Viking Express Hotel");
     }
 
     @Then("{string} hotel is shown")
-    public void hotelIsShown(String expectedResult) {
-        List<WebElement> titles = driver.findElements(By.xpath("//*[@data-testid='title']"));
-        boolean isHotelFound = false;
-        for(WebElement title :titles) {
-            if (title.getText().equals(expectedResult)) {
-                isHotelFound = true;
-                break;
-            }
-        }
-        Assert.assertTrue(isHotelFound);
+    public void hotelIsShown(String expectedResult) throws InterruptedException {
+        searchPage.isHotelShown("Viking Express Hotel");
+    }
+
+    @And("hotel has rating {string}")
+    public void hotelHasRating(String actualResult) {
+        actualResult = searchPage.getHotelRating("Viking Express Hotel");
+        Assert.assertEquals(actualResult, "8,4");
     }
 
     @After
@@ -55,4 +54,6 @@ public class SearchStep extends BaseTest {
             driver.quit();
         }
     }
+
+
 }
